@@ -1,0 +1,31 @@
+
+/* стили для всплывающих уведомлений */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+h2 {
+    color: #333;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    margin: 5px 0;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}
