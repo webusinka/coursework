@@ -1,27 +1,22 @@
-<!-- accounts/templates/registration/login.html -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход</title>
-</head>
-<body>
-    <h2>Вход</h2>
+{% extends 'base.html' %}
 
-    {% if messages %}
-        <ul>
-            {% for message in messages %}
-                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+{% block title %}Вход{% endblock %}
 
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Войти</button>
-    </form>
-    <p>Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
-</body>
-</html>
+{% block content %}
+<h2>Вход</h2>
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Войти</button>
+</form>
+<p>Нет аккаунта? <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+{% endblock %}

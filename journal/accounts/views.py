@@ -1,9 +1,14 @@
 from django.shortcuts import render, redirect
 from .forms import UserRegistrationForm
 from django.contrib import messages
+from django.contrib.auth.views import LogoutView
+from django.urls import reverse_lazy
 
 def home(request):
     return render(request, 'accounts/home.html')
+
+class CustomLogoutView(LogoutView):
+    next_page = reverse_lazy('registrstion/login')
 
 def register(request):
     if request.method == 'POST':
