@@ -7,6 +7,6 @@
 {% if user.is_authenticated %}
     <p>Привет, {{ user.username }}! </a></p>
 {% else %}
-    <p><a href="{% url 'login' %}">Войти</a> или <a href="{% url 'register' %}">Зарегистрироваться</a></p>
+    <p>Вы не авторизованы.</p>
 {% endif %}
 {% endblock %}
