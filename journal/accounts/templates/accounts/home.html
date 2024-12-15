@@ -27,7 +27,25 @@
             {% endfor %}
         </table>
     {% else %}
-        <p>Здравствуйте, студяга.</p>
+        {% if questions %}
+            <h2>Пройдите тест</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <div id="questions-container">
+                    {% for question in questions %}
+                        <div>
+                            <label>{{ question.text }}</label><br>
+                            {% for answer in question.answers.all %}
+                                <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}"> {{ answer.text }}<br>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="submit">Отправить</button>
+            </form>
+        {% else %}
+            <p>Нет доступных вопросов для теста.</p>
+        {% endif %}
     {% endif %}
 {% else %}
     <p>Вы не авторизованы.</p>
