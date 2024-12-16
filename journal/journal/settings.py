@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts',
     'django.contrib.messages',
+    'django_prometheus',
 ]
 
 MIDDLEWARE = [
@@ -56,6 +57,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'django_prometheus.middleware.PrometheusBeforeMiddleware', # для метрик
+    'django.middleware.common.CommonMiddleware',
+    'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 
 ROOT_URLCONF = 'journal.urls'

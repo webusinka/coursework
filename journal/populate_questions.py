@@ -1,4 +1,3 @@
-# populate_questions.py
 import os
 import django
 
@@ -9,6 +8,10 @@ django.setup()
 from accounts.models import Question, Answer
 
 def populate():
+    # Удаляем все существующие записи
+    Answer.objects.all().delete()  # Сначала удаляем ответы
+    Question.objects.all().delete()  # Затем удаляем вопросы
+
     # Пример вопросов и ответов
     questions_data = [
         {
