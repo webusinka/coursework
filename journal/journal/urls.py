@@ -27,4 +27,6 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('metrics/', include('django_prometheus.urls')),
     path('', views.home, name='home'),
+    path('submit_test/', views.submit_test, name='submit_test'),
+    path('results/', views.results, name='results'),
 ]

@@ -11,13 +11,13 @@
         top: 60px;
         left: 0;
         right: 0;
-        padding: 8px; /* Отступы */
+        padding: 5px; /* Отступы */
         z-index: 1000; /* Убедитесь, что заголовок выше других элементов */
         text-align: center; /* Центрирование текста */
     }
 
     .content {
-        margin-top: 60px;
+        margin-top: 75px;
         text-align: center;
     }
 
@@ -31,6 +31,13 @@
         flex: 1 1 45%;
         margin: 10px;
         text-align: center; /* Центрирование текста внутри вопроса */
+    }
+
+    .reset-text {
+        text-decoration: underline; /* Подчеркивание текста */
+        cursor: pointer; /* Курсор при наведении */
+        color: blue; /* Цвет текста */
+        margin-bottom: 10px; /* Отступ снизу */
     }
 </style>
 
@@ -62,7 +69,7 @@
             {% if questions %}
                 <h2>Пройдите тест</h2>
                 <p style="font-size: 14px; color: gray;">Отвечая на вопрос, вы должны выбрать, близко вам предложенное утверждение или нет.</p>
-                <form method="POST">
+                <form method="POST" action="{% url 'submit_test' %}">
                     {% csrf_token %}
                     <div id="questions-container">
                         {% for question in questions %}
@@ -74,6 +81,7 @@
                             </div>
                         {% endfor %}
                     </div>
+                    <span class="reset-text" onclick="resetAnswers()">Стереть ответы</span>
                     <div style="display: flex; justify-content: center; margin-top: 20px;">
                         <button type="submit" class="submit-button" style="width: 150px;">Отправить</button>
                     </div>
@@ -86,4 +94,15 @@
         <p>Вы не авторизованы.</p>
     {% endif %}
 </div>
+
+<script>
+    function resetAnswers() {
+        // Получаем все радиокнопки на странице
+        const radios = document.querySelectorAll('input[type="radio"]');
+        // Сбрасываем их состояние
+        radios.forEach(radio => {
+            radio.checked = false;
+        });
+    }
+</script>
 {% endblock %}
