@@ -12,6 +12,7 @@ class Profile(models.Model):
     
 class Question(models.Model):
     text = models.CharField(max_length=255)
+    category = models.CharField(max_length=100)  # Добавлено поле для категории
 
     def __str__(self):
         return self.text

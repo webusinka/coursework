@@ -6,6 +6,24 @@
     <title>{% block title %}Успеваемость{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'accounts/styles.css' %}">
+    <style>
+        /* Стили для фиксированного навигационного меню */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: white; /* Цвет фона меню */
+            padding: 10px; /* Отступы */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Тень для меню */
+            z-index: 1000; /* Убедитесь, что меню выше других элементов */
+        }
+
+        /* Отступ для основного содержимого */
+        .container {
+            margin-top: 60px; /* Убедитесь, что отступ соответствует высоте меню */
+        }
+    </style>
 </head>
 <body>
     <nav>

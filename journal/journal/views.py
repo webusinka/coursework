@@ -17,5 +17,7 @@ def home(request):
 
     return render(request, '/home/businka/coursework/journal/accounts/templates/accounts/home.html', context = {'users': users, 'questions': questions})
 
+
+
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login')

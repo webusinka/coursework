@@ -4,50 +4,86 @@
 {% block title %}Домашняя страница{% endblock %}
 
 {% block content %}
-<h1>Добро пожаловать на сайт<br>отслеживания успеваемости!</h1>
-{% if user.is_authenticated %}
-    <p>Привет, {{ user.username }}!</p>
+<style>
+    /* Стили для фиксированного заголовка */
+    .fixed-header {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        right: 0;
+        padding: 8px; /* Отступы */
+        z-index: 1000; /* Убедитесь, что заголовок выше других элементов */
+        text-align: center; /* Центрирование текста */
+    }
+
+    .content {
+        margin-top: 60px;
+        text-align: center;
+    }
+
+    #questions-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center; /* Центрирование контейнера вопросов */
+    }
     
-    {% if user.is_superuser %}
-        <h2>Список зарегистрированных студентов:</h2>
-        <table border="1">
-            <tr>
-                <th>Имя пользователя</th>   
-                <th>Email</th>
-            </tr>
-            {% for registered_user in users %}
-            <tr>
-                <td>{{ registered_user.username }}</td>
-                <td>{{ registered_user.email }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="2">Нет зарегистрированных пользователей.</td>
-            </tr>
-            {% endfor %}
-        </table>
-    {% else %}
-        {% if questions %}
-            <h2>Пройдите тест</h2>
-            <form method="POST">
-                {% csrf_token %}
-                <div id="questions-container">
-                    {% for question in questions %}
-                        <div>
-                            <label>{{ question.text }}</label><br>
-                            {% for answer in question.answers.all %}
-                                <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}"> {{ answer.text }}<br>
-                            {% endfor %}
-                        </div>
-                    {% endfor %}
-                </div>
-                <button type="submit">Отправить</button>
-            </form>
+    .question {
+        flex: 1 1 45%;
+        margin: 10px;
+        text-align: center; /* Центрирование текста внутри вопроса */
+    }
+</style>
+
+<div class="fixed-header">
+    <h1>Добро пожаловать на сайт<br>отслеживания направления развития!</h1>
+</div>
+
+<div class="content">
+    {% if user.is_authenticated %}
+        {% if user.is_superuser %}
+            <h2>Список зарегистрированных студентов:</h2>
+            <table border="1">
+                <tr>
+                    <th>Имя пользователя</th>   
+                    <th>Email</th>
+                </tr>
+                {% for registered_user in users %}
+                <tr>
+                    <td>{{ registered_user.username }}</td>
+                    <td>{{ registered_user.email }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">Нет зарегистрированных пользователей.</td>
+                </tr>
+                {% endfor %}
+            </table>
         {% else %}
-            <p>Нет доступных вопросов для теста.</p>
+            {% if questions %}
+                <h2>Пройдите тест</h2>
+                <p style="font-size: 14px; color: gray;">Отвечая на вопрос, вы должны выбрать, близко вам предложенное утверждение или нет.</p>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div id="questions-container">
+                        {% for question in questions %}
+                            <div class="question">
+                                <label>{{ question.text }}</label><br>
+                                {% for answer in question.answers.all %}
+                                    <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}"> {{ answer.text }}<br>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div style="display: flex; justify-content: center; margin-top: 20px;">
+                        <button type="submit" class="submit-button" style="width: 150px;">Отправить</button>
+                    </div>
+                </form>
+            {% else %}
+                <p>Нет доступных вопросов для теста.</p>
+            {% endif %}
         {% endif %}
+    {% else %}
+        <p>Вы не авторизованы.</p>
     {% endif %}
-{% else %}
-    <p>Вы не авторизованы.</p>
-{% endif %}
+</div>
 {% endblock %}

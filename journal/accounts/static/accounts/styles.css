@@ -43,6 +43,20 @@ nav li {
     text-align: center; /* Центрирование текста */
 }
 
+.fixed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+main {
+    padding-top: 60px; /* Убедитесь, что это значение соответствует высоте вашего заголовка */
+}
+
 h2 {
     color: #333;
     margin-bottom: 20px; /* Отступ снизу заголовка */
