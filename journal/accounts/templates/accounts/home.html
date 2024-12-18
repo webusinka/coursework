@@ -57,11 +57,11 @@
             <table border="1">
                 <tr>
                     <th>Имя пользователя</th>
-                    <th>Посещаемость (%)</th>
-                    <th>Оценка по ОИБ</th>
-                    <th>Оценка по программированию</th>
-                    <th>Оценка по безопасности ОС</th>
-                    <th>Комментарий по направлению</th>
+                    <th>Посещаемость(%)</th>
+                    <th>Основы ИБ</th>
+                    <th>Программирование</th>
+                    <th>Безопасность ОС</th>
+                    <th>Комментарий от преподавателя</th>
                 </tr>
                 {% for user in users %}
                     <tr>
@@ -84,6 +84,32 @@
                 </tr>
                 {% endfor %}
             </table>
+            <h2>Изменить данные студента:</h2>
+            <form id="update-form" method="POST" action="{% url 'update_performance' %}">
+                {% csrf_token %}
+                <label for="username">Имя пользователя:</label>
+                <select id="username" name="username" required>
+                    <option value="" disabled selected>Выберите студента</option> <!-- Добавляем пустой элемент -->
+                    {% for user in users %}
+                        <option value="{{ user.id }}">{{ user.username }}</option>
+                    {% endfor %}
+                </select>
+                
+                <label for="field">Поле для изменения:</label>
+                <select id="field" name="field" required>
+                    <option value="" disabled selected>Выберите поле</option> <!-- Добавляем пустой элемент -->
+                    <option value="attendance">Посещаемость (%)</option>
+                    <option value="oib_score">Оценка по ОИБ</option>
+                    <option value="programming_score">Оценка по программированию</option>
+                    <option value="os_security_score">Оценка по безопасности ОС</option>
+                    <option value="direction_comment">Комментарий по направлению</option>
+                </select>
+                
+                <label for="new_value">Новое значение:</label>
+                <input type="text" id="new_value" name="new_value" required placeholder="Введите новое значение"> <!-- Добавляем подсказку -->
+                
+                <button type="submit" style="width: 150px;">Изменить</button>
+            </form>
         {% else %}
             {% if questions %}
                 <h2>Пройдите тест</h2>
@@ -116,6 +142,50 @@
 </div>
 
 <script>
+    document.getElementById('update-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+        // Создаем объект с данными формы
+        const data = {
+            user_id: document.getElementById('username').value, // user_id
+            new_value: document.getElementById('new_value').value, // Новое значение
+            field: document.getElementById('field').value // Поле для обновления
+        };
+
+        // Отправляем данные на сервер в формате JSON
+        fetch('{% url "update_performance" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Устанавливаем заголовок на application/json
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data) // Сериализуем объект в JSON
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Данные успешно обновлены!');
+                
+                // Обновляем соответствующую ячейку в таблице
+                const userId = document.getElementById('username').value; // user_id
+                const field = document.getElementById('field').value; // Поле для обновления
+                const newValue = document.getElementById('new_value').value; // Новое значение
+
+                // Находим ячейку по user_id и полю
+                const cell = document.querySelector(`tr td[data-user-id="${userId}"][data-field="${field}"]`);
+                if (cell) {
+                    cell.innerText = newValue; // Обновляем текст ячейки
+                }
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка при обновлении данных.');
+        });
+    });
+    
     function resetAnswers() {
         const radios = document.querySelectorAll('input[type="radio"]');
         //сбрасываем состояние

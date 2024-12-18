@@ -59,7 +59,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'django_prometheus.middleware.PrometheusBeforeMiddleware', # для метрик
-    'django.middleware.common.CommonMiddleware',
     'django_prometheus.middleware.PrometheusAfterMiddleware',
 ]
 

@@ -6,6 +6,9 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.contrib import messages
 from collections import defaultdict
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.http import JsonResponse
 
 @login_required
 def home(request):
@@ -68,6 +71,31 @@ def calculate_results(user):
         sorted_percentages = dict(sorted(percentages.items(), key=lambda item: item[1]['percentage'], reverse=True))
 
     return sorted_percentages
+
+@csrf_exempt
+def update_performance(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        field = data.get('field')
+        new_value = data.get('new_value')
+
+        try:
+            # Обновляем поля вручную
+            update_fields = {}
+            if field is not None:
+                update_fields[field] = new_value
+
+            # Обновляем объект AcademicPerformance по user_id
+            AcademicPerformance.objects.filter(user_id=user_id).update(**update_fields)
+
+            return JsonResponse({'status': 'success'})
+        except AcademicPerformance.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Performance not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
 
 @login_required
 def results(request):

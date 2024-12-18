@@ -18,15 +18,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from .views import home, submit_test, results
+from .views import home, submit_test, results, update_performance
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('metrics/', include('django_prometheus.urls')),
+    path('', include('django_prometheus.urls')),
     path('', home, name='home'),
     path('submit_test/', submit_test, name='submit_test'),
     path('results/', results, name='results'),
+    path('update-performance/', update_performance, name='update_performance'),
 ]
