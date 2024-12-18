@@ -10,15 +10,15 @@ from collections import defaultdict
 @login_required
 def home(request):
     if request.user.is_superuser:
-        # Получаем всех пользователей, если текущий пользователь - суперпользователь
-        users = CustomUser.objects.all()
-        return render(request, '/home/businka/coursework/journal/accounts/templates/accounts/home.html', context = {'users': users, 'questions': None})  # Не показываем тест
+        #все пользователи, кроме суперпользователей
+        users = CustomUser .objects.exclude(is_superuser=True)
+        return render(request, 'accounts/home.html', context={'users': users, 'questions': None})  # Не показываем тест
 
-    # Если не суперпользователь, показываем тест
+    #если студент показываем тест
     users = None
-    questions = Question.objects.all()  # Получаем все вопросы для обычных пользователей
+    questions = Question.objects.all()
 
-    return render(request, '/home/businka/coursework/journal/accounts/templates/accounts/home.html', context = {'users': users, 'questions': questions})
+    return render(request, 'accounts/home.html', context={'users': users, 'questions': questions})
 
 @login_required
 def submit_test(request):
@@ -35,9 +35,9 @@ def submit_test(request):
                     selected_answer=selected_answer
                 )
         messages.success(request, 'Ваши ответы успешно сохранены!')
-        return redirect('results')  # Перенаправьте на страницу с результатами
+        return redirect('results')
 
-    return redirect('home')  # Если не POST, перенаправьте на главную
+    return redirect('home')
 
 def calculate_results(user):
     results = TestResult.objects.filter(user=user)
@@ -62,13 +62,14 @@ def calculate_results(user):
             'total': total,
             'percentage': percentage
         }
+        sorted_percentages = dict(sorted(percentages.items(), key=lambda item: item[1]['percentage'], reverse=True))
 
-    return percentages
+    return sorted_percentages
 
 @login_required
 def results(request):
     results = calculate_results(request.user)
-    return render(request, '/home/businka/coursework/journal/accounts/templates/accounts/results.html', {'results': results})
+    return render(request, 'accounts/results.html', {'results': results})
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login')

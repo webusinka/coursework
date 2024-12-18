@@ -5,39 +5,44 @@
 
 {% block content %}
 <style>
-    /* Стили для фиксированного заголовка */
     .fixed-header {
         position: fixed;
         top: 60px;
         left: 0;
         right: 0;
-        padding: 5px; /* Отступы */
-        z-index: 1000; /* Убедитесь, что заголовок выше других элементов */
-        text-align: center; /* Центрирование текста */
+        padding: 5px;
+        z-index: 1000;
+        text-align: center;
     }
 
     .content {
-        margin-top: 75px;
+        margin-top: 90px;
         text-align: center;
     }
 
     #questions-container {
         display: flex;
         flex-wrap: wrap;
-        justify-content: center; /* Центрирование контейнера вопросов */
+        justify-content: center;
     }
     
     .question {
         flex: 1 1 45%;
         margin: 10px;
-        text-align: center; /* Центрирование текста внутри вопроса */
+        text-align: center;
     }
 
     .reset-text {
-        text-decoration: underline; /* Подчеркивание текста */
-        cursor: pointer; /* Курсор при наведении */
-        color: blue; /* Цвет текста */
-        margin-bottom: 10px; /* Отступ снизу */
+        text-decoration: underline;
+        cursor: pointer;
+        color: blue;
+        margin-bottom: 10px;
+    }
+
+    .error-message {
+        color: red;
+        margin-top: 10px;
+        display: none;
     }
 </style>
 
@@ -69,21 +74,22 @@
             {% if questions %}
                 <h2>Пройдите тест</h2>
                 <p style="font-size: 14px; color: gray;">Отвечая на вопрос, вы должны выбрать, близко вам предложенное утверждение или нет.</p>
-                <form method="POST" action="{% url 'submit_test' %}">
+                <form id="test-form" method="POST" action="{% url 'submit_test' %}">
                     {% csrf_token %}
                     <div id="questions-container">
                         {% for question in questions %}
                             <div class="question">
                                 <label>{{ question.text }}</label><br>
                                 {% for answer in question.answers.all %}
-                                    <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}"> {{ answer.text }}<br>
+                                    <input type="radio" name="question_{{ question.id }}" value="{{ answer.id }}" onchange="hideErrorMessage()"> {{ answer.text }}<br>
                                 {% endfor %}
                             </div>
                         {% endfor %}
                     </div>
                     <span class="reset-text" onclick="resetAnswers()">Стереть ответы</span>
+                    <div class="error-message" id="error-message">Пожалуйста, ответьте на все вопросы перед отправкой.</div>
                     <div style="display: flex; justify-content: center; margin-top: 20px;">
-                        <button type="submit" class="submit-button" style="width: 150px;">Отправить</button>
+                        <button type="button" class="submit-button" style="width: 150px;" onclick="validateForm()">Отправить</button>
                     </div>
                 </form>
             {% else %}
@@ -97,12 +103,38 @@
 
 <script>
     function resetAnswers() {
-        // Получаем все радиокнопки на странице
         const radios = document.querySelectorAll('input[type="radio"]');
-        // Сбрасываем их состояние
+        //сбрасываем состояние
         radios.forEach(radio => {
             radio.checked = false;
         });
+        document.getElementById('error-message').style.display = 'none';
+    }
+
+    function hideErrorMessage() {
+        document.getElementById('error-message').style.display = 'none';
+    }
+
+    function validateForm() {
+        const questions = document.querySelectorAll('#questions-container .question');
+        let allAnswered = true;
+
+        questions.forEach(question => {
+            const radios = question.querySelectorAll('input[type="radio"]');
+            const isAnswered = Array.from(radios).some(radio => radio.checked);
+            if (!isAnswered) {
+                allAnswered = false;
+            }
+        });
+
+        if (!allAnswered) {
+            //если не все вопросы отвечены
+            document.getElementById('error-message').style.display = 'block';
+        } else {
+            //или отправляем форму
+            document.getElementById('error-message').style.display = 'none';
+            document.getElementById('test-form').submit();
+        }
     }
 </script>
 {% endblock %}

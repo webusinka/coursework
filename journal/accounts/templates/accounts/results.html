@@ -9,13 +9,11 @@
     <table border="1">
         <tr>
             <th>Категория</th>
-            <th>Всего вопросов</th>
             <th>Процент правильных ответов</th>
         </tr>
         {% for category, data in results.items %}
         <tr>
             <td>{{ category }}</td>
-            <td>{{ data.total }}</td>
             <td>{{ data.percentage|floatformat:2 }}%</td>
         </tr>
         {% endfor %}
