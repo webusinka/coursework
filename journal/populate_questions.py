@@ -1,11 +1,15 @@
 import os
 import django
+import random
 
 # Настройка Django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'journal.settings')
 django.setup()
 
-from accounts.models import Question, Answer
+from accounts.models import Question, Answer, AcademicPerformance
+from django.contrib.auth import get_user_model
+
+User  = get_user_model()
 
 def populate():
     # Удаляем все существующие записи
@@ -108,6 +112,39 @@ def populate():
                 text=answer_data['text'],
                 is_correct=answer_data['is_correct']
             )
+
+    print("Вопросы и ответы успешно созданы.")
+
+    # Удаляем все существующие записи
+    AcademicPerformance.objects.all().delete()
+
+    # Получаем всех пользователей, исключая тех, у кого is_staff=True
+    users = User.objects.filter(is_staff=False)
+
+    # Проверяем, есть ли пользователи
+    if not users.exists():
+        print("Нет пользователей для заполнения таблицы AcademicPerformance.")
+        return
+
+    # Пример данных для заполнения
+    for user in users:
+        attendance = random.uniform(50, 100)  # Случайное значение посещаемости от 0 до 100
+        oib_score = random.choice([3, 4, 5])  # Случайная оценка OIB
+        programming_score = random.choice([3, 4, 5])  # Случайная оценка по программированию
+        os_security_score = random.choice([3, 4, 5])  # Случайная оценка по безопасности ОС
+        direction_comment = "Комментарий для пользователя {}".format(user.username)  # Комментарий
+
+        # Создаем запись в таблице AcademicPerformance
+        AcademicPerformance.objects.create(
+            user=user,
+            attendance=attendance,
+            oib_score=oib_score,
+            programming_score=programming_score,
+            os_security_score=os_security_score,
+            direction_comment=direction_comment
+        )
+
+    print("Таблица AcademicPerformance успешно заполнена.")
 
 if __name__ == '__main__':
     populate()

@@ -18,7 +18,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from . import views
+from .views import home, submit_test, results
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,7 +26,7 @@ urlpatterns = [
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('metrics/', include('django_prometheus.urls')),
-    path('', views.home, name='home'),
-    path('submit_test/', views.submit_test, name='submit_test'),
-    path('results/', views.results, name='results'),
+    path('', home, name='home'),
+    path('submit_test/', submit_test, name='submit_test'),
+    path('results/', results, name='results'),
 ]

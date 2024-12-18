@@ -51,7 +51,7 @@ class AcademicPerformance(models.Model):
         # Вычисляем средний балл
         average_score = (self.oib_score + self.programming_score + self.os_security_score) / 3
         # Проверяем условия для комментария
-        if average_score < 3 and self.attendance < 50:
+        if average_score < 3 or self.attendance < 50:
             return "Рекомендуется перевестись"
         else:
             # Определяем предмет с наивысшим баллом
