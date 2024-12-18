@@ -1,6 +1,6 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import reverse_lazy
-from accounts.models import CustomUser, Question, Answer, TestResult
+from accounts.models import CustomUser, Question, Answer, TestResult, AcademicPerformance
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -9,12 +9,15 @@ from collections import defaultdict
 
 @login_required
 def home(request):
-    if request.user.is_superuser:
-        #все пользователи, кроме суперпользователей
-        users = CustomUser .objects.exclude(is_superuser=True)
-        return render(request, 'accounts/home.html', context={'users': users, 'questions': None})  # Не показываем тест
+    if request.user.is_staff:
+        # Получаем всех пользователей, кроме суперпользователей
+        users = CustomUser .objects.exclude(is_staff=True)
+        # Получаем успеваемость для этих пользователей
+        performances = AcademicPerformance.objects.filter(user__in=users)
 
-    #если студент показываем тест
+        return render(request, 'accounts/home.html', context={'users': users, 'performances': performances, 'questions': None})  # Не показываем тест
+
+    # Если студент, показываем тест
     users = None
     questions = Question.objects.all()
 

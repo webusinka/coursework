@@ -56,14 +56,28 @@
             <h2>Список зарегистрированных студентов:</h2>
             <table border="1">
                 <tr>
-                    <th>Имя пользователя</th>   
-                    <th>Email</th>
+                    <th>Имя пользователя</th>
+                    <th>Посещаемость (%)</th>
+                    <th>Оценка по ОИБ</th>
+                    <th>Оценка по программированию</th>
+                    <th>Оценка по безопасности ОС</th>
+                    <th>Комментарий по направлению</th>
                 </tr>
-                {% for registered_user in users %}
-                <tr>
-                    <td>{{ registered_user.username }}</td>
-                    <td>{{ registered_user.email }}</td>
-                </tr>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        {% for performance in performances %}
+                            {% if performance.user == user %}
+                                <td>{{ performance.attendance|floatformat:2 }}</td>
+                                <td>{{ performance.oib_score }}</td>
+                                <td>{{ performance.programming_score }}</td>
+                                <td>{{ performance.os_security_score }}</td>
+                                <td>{{ performance.direction_comment }}</td>
+                            {% endif %}
+                        {% empty %}
+                            <td colspan="5">Нет данных о успеваемости</td>
+                        {% endfor %}
+                    </tr>
                 {% empty %}
                 <tr>
                     <td colspan="2">Нет зарегистрированных пользователей.</td>
