@@ -17,6 +17,18 @@
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
+
+        <div>
+            <label>
+                <input type="radio" name="user_type" value="student" checked>
+                Студент
+            </label>
+            <label>
+                <input type="radio" name="user_type" value="staff">
+                Преподаватель
+            </label>
+        </div>
+
         <button type="submit">Зарегистрироваться</button>
     </form>
 </div>

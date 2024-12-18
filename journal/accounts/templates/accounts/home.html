@@ -52,7 +52,7 @@
 
 <div class="content">
     {% if user.is_authenticated %}
-        {% if user.is_superuser %}
+        {% if user.is_staff %}
             <h2>Список зарегистрированных студентов:</h2>
             <table border="1">
                 <tr>
