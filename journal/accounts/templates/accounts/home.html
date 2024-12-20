@@ -5,19 +5,16 @@
 
 {% block content %}
 <style>
-    .fixed-header {
-        position: fixed;
-        top: 60px;
-        left: 0;
-        right: 0;
-        padding: 5px;
-        z-index: 1000;
-        text-align: center;
-    }
-
     .content {
-        margin-top: 90px;
+        margin-top: 30px;
+        padding: 20px;
         text-align: center;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
     #questions-container {
@@ -46,14 +43,21 @@
     }
 </style>
 
-<div class="fixed-header">
-    <h1>Добро пожаловать на сайт<br>отслеживания направления развития!</h1>
-</div>
-
 <div class="content">
     {% if user.is_authenticated %}
         {% if user.is_staff %}
             <h2>Список зарегистрированных студентов:</h2>
+
+            <div style="margin-bottom: 20px; text-align: center;">
+                <label for="group-select">Выберите группу:</label>
+                <select id="group-select" onchange="loadStudentsByGroup()" style="font-size: 14px; padding: 5px;">
+                    <option value="" disabled {% if not request.GET.group_id %}selected{% endif %}>Выберите группу</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}" {% if group.id|stringformat:"s" == request.GET.group_id %}selected{% endif %}>{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <table border="1">
                 <tr>
                     <th>Имя пользователя</th>
@@ -88,16 +92,16 @@
             <form id="update-form" method="POST" action="{% url 'update_performance' %}">
                 {% csrf_token %}
                 <label for="username">Имя пользователя:</label>
-                <select id="username" name="username" required>
-                    <option value="" disabled selected>Выберите студента</option> <!-- Добавляем пустой элемент -->
+                <select id="username" name="username" required style="font-size: 14px; padding: 5px;">
+                    <option value="" disabled selected>Выберите студента</option>
                     {% for user in users %}
                         <option value="{{ user.id }}">{{ user.username }}</option>
                     {% endfor %}
                 </select>
                 
                 <label for="field">Поле для изменения:</label>
-                <select id="field" name="field" required>
-                    <option value="" disabled selected>Выберите поле</option> <!-- Добавляем пустой элемент -->
+                <select id="field" name="field" required style="font-size: 14px; padding: 5px;">
+                    <option value="" disabled selected style="font-size: 14px; padding: 5px;">Выберите поле</option>
                     <option value="attendance">Посещаемость (%)</option>
                     <option value="oib_score">Оценка по ОИБ</option>
                     <option value="programming_score">Оценка по программированию</option>
@@ -105,11 +109,15 @@
                     <option value="direction_comment">Комментарий по направлению</option>
                 </select>
                 
-                <label for="new_value">Новое значение:</label>
-                <input type="text" id="new_value" name="new_value" required placeholder="Введите новое значение"> <!-- Добавляем подсказку -->
+                <label for="new_value"><br>Новое значение:</label>
+                <input type="text" id="new_value" name="new_value" required placeholder="Введите новое значение" style="font-size: 14px; padding: 5px;"> <!-- Добавляем подсказку -->
                 
                 <button type="submit" style="width: 150px;">Изменить</button>
             </form>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="edit-testing-button" style="width: 150px;">Изменить тестирование</button>
+            </div>
         {% else %}
             {% if questions %}
                 <h2>Пройдите тест</h2>
@@ -142,6 +150,17 @@
 </div>
 
 <script>
+    function loadStudentsByGroup() {
+        const groupId = document.getElementById('group-select').value;
+
+        // Перезагружаем страницу с параметром group_id
+        window.location.href = `?group_id=${groupId}`;
+    }
+
+    document.getElementById('edit-testing-button').addEventListener('click', function() {
+        window.location.replace('{% url "edit_testing" %}');
+    });
+
     document.getElementById('update-form').addEventListener('submit', function(event) {
         event.preventDefault(); // Предотвращаем стандартное поведение формы
 
@@ -166,16 +185,8 @@
             if (data.status === 'success') {
                 alert('Данные успешно обновлены!');
                 
-                // Обновляем соответствующую ячейку в таблице
-                const userId = document.getElementById('username').value; // user_id
-                const field = document.getElementById('field').value; // Поле для обновления
-                const newValue = document.getElementById('new_value').value; // Новое значение
-
-                // Находим ячейку по user_id и полю
-                const cell = document.querySelector(`tr td[data-user-id="${userId}"][data-field="${field}"]`);
-                if (cell) {
-                    cell.innerText = newValue; // Обновляем текст ячейки
-                }
+                // Перезагружаем страницу
+                window.location.reload();
             } else {
                 alert('Ошибка: ' + data.message);
             }

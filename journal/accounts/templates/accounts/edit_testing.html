@@ -1,0 +1,151 @@
+<!-- edit_testing.html -->
+{% extends 'base.html' %}
+
+{% block title %}Изменить тестирование{% endblock %}
+
+{% block content %}
+<div class="content" style=" padding: 20px; border-radius: 5px; max-width: 500px; margin: auto;
+                            background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+    <h2>Изменить тестирование</h2>
+    <form id="edit-testing-form" method="POST" action="{% url 'save_testing_changes' %}" style="display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        
+        <label for="action">Выберите действие:</label>
+        <select id="action" name="action" required style="font-size: 14px; padding: 5px;">
+            <option value="" disabled selected>Выберите действие</option>
+            <option value="update">Изменить существующий вопрос</option>
+            <option value="add">Добавить новый вопрос</option>
+            <option value="delete">Удалить существующий вопрос</option> <!-- Новая опция для удаления -->
+        </select>
+
+        <div id="question-selection-container" style="display: none;">
+            <label for="existing-question">Выберите вопрос для изменения:</label>
+            <select id="existing-question" name="existing-question" style="font-size: 14px; padding: 5px;">
+                <option value="" disabled selected>Выберите вопрос</option>
+                {% for question in questions %}
+                    <option value="{{ question.id }}">{{ question.text }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="delete-question-container" style="display: none;"> <!-- Новый контейнер для удаления вопроса -->
+            <label for="delete-question">Выберите вопрос для удаления:</label>
+            <select id="delete-question" name="delete-question" style="font-size: 14px; padding: 5px;">
+                <option value="" disabled selected>Выберите вопрос</option>
+                {% for question in questions %}
+                    <option value="{{ question.id }}">{{ question.text }}</option>
+                {% endfor %}
+            </select>
+            <p>Категория: <span id="delete-question-category"></span></p>
+        </div>
+
+        <div id="question-container" style="display: none;">
+            <label for="question">Вопрос:</label>
+            <input type="text" id="question" name="question" required placeholder="Введите вопрос" style="font-size: 14px; padding: 5px; width: calc(100% - 10px); margin: 5px 0;">
+        </div>
+
+        <div id="category-container" style="display: none;">
+            <label for="category">Категория направления:</label>
+            <select id="category" name="category" style="font-size: 14px; padding: 5px;">
+                <option value="" disabled selected>Выберите категорию</option>
+                {% for category in unique_categories %}
+                    <option value="{{ category.category }}">{{ category.category }}</option>
+                {% endfor %}
+            </select>
+            <div style="text-align: center; margin-top: 1px;">
+                <button type="button" id="add-new-category-button" style="width: 150px;">Добавить новую категорию</button>
+            </div>
+        </div>
+        
+        <div id="new-category-container" style="display: none;">
+            <label for="new-category">Введите новое направление:</label>
+            <input type="text" id="new-category" name="new-category" placeholder="Введите новое направление" style="font-size: 14px; padding: 5px;">
+            <div style="text-align: center; margin-top: 1px;">
+                <button type="button" id="select-existing-category-button" style="width: 120px;">Выбрать из имеющихся</button>
+            </div>
+        </div>
+
+        <button type="submit" style="width: 100%;">Сохранить изменения</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('action').addEventListener('change', function() {
+        const action = this.value;
+        const questionSelectionContainer = document.getElementById('question-selection-container');
+        const deleteQuestionContainer = document.getElementById('delete-question-container'); // Новый контейнер для удаления
+        const questionContainer = document.getElementById('question-container');
+        const categoryContainer = document.getElementById('category-container');
+        const newCategoryContainer = document.getElementById('new-category-container');
+
+        // Скрываем все контейнеры по умолчанию
+        questionSelectionContainer.style.display = 'none';
+        deleteQuestionContainer.style.display = 'none';
+        questionContainer.style.display = 'none';
+        categoryContainer.style.display = 'none';
+        newCategoryContainer.style.display = 'none';
+
+        if (action === 'add') {
+            questionContainer.style.display = 'block'; // Показать поле для нового вопроса
+            categoryContainer.style.display = 'block'; // Показать выбор категории
+        } else if (action === 'update') {
+            questionSelectionContainer.style.display = 'block'; // Показать выбор вопроса
+            questionContainer.style.display = 'block'; // Показать поле для изменения вопроса
+            categoryContainer.style.display = 'block'; // Показать выбор категории
+        } else if (action === 'delete') {
+            deleteQuestionContainer.style.display = 'block'; // Показать выбор вопроса для удаления
+        }
+    });
+
+    document.getElementById('add-new-category-button').addEventListener('click', function() {
+        const categoryContainer = document.getElementById('category-container');
+        const newCategoryContainer = document.getElementById('new-category-container');
+
+        // Скрыть выпадающий список и кнопку "Добавить новую категорию"
+        categoryContainer.style.display = 'none'; 
+        newCategoryContainer.style.display = 'block'; // Показать поле для ввода новой категории
+        document.getElementById('category').value = ''; // Очистить выбор категории
+    });
+
+    document.getElementById('select-existing-category-button').addEventListener('click', function() {
+        const categoryContainer = document.getElementById('category-container');
+        const newCategoryContainer = document.getElementById('new-category-container');
+
+        // Скрыть поле для ввода новой категории и показать выпадающий список
+        newCategoryContainer.style.display = 'none'; 
+        categoryContainer.style.display = 'block'; // Показать выбор категории
+    });
+
+    document.getElementById('existing-question').addEventListener('change', function() {
+        const selectedQuestionText = this.options[this.selectedIndex].text;
+        const questionInput = document.getElementById('question');
+
+        // Заполняем поле вопроса выбранным текстом
+        questionInput.value = selectedQuestionText;
+    });
+
+    document.getElementById('delete-question').addEventListener('change', function() {
+        const selectedQuestionId = this.value; // Получаем ID выбранного вопроса
+        const categoryDisplay = document.getElementById('delete-question-category'); // Элемент для отображения категории
+
+        if (selectedQuestionId) {
+            // Отправляем AJAX-запрос для получения категории
+            fetch(`/get-question-category/${selectedQuestionId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.category) {
+                        categoryDisplay.textContent = data.category; // Отображаем категорию
+                    } else {
+                        categoryDisplay.textContent = 'Категория не найдена';
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    categoryDisplay.textContent = 'Ошибка при загрузке категории';
+                });
+        } else {
+            categoryDisplay.textContent = ''; // Очистить, если ничего не выбрано
+        }
+    });
+</script>
+{% endblock %}
