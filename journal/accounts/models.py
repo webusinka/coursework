@@ -65,3 +65,19 @@ class AcademicPerformance(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - Успеваемость"
+    
+class Group(models.Model):
+    name = models.CharField(max_length=100, unique=True)  # Название группы
+
+    def __str__(self):
+        return self.name
+
+class id_Student_Group(models.Model):
+    user = models.ForeignKey(CustomUser , on_delete=models.CASCADE)  # Связь с пользователем
+    group = models.ForeignKey(Group, on_delete=models.CASCADE)  # Связь с группой
+
+    class Meta:
+        unique_together = ('user', 'group')  # Уникальная связь между пользователем и группой
+
+    def __str__(self):
+        return f"{self.user.username} - {self.group.name}"

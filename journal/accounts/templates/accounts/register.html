@@ -20,16 +20,37 @@
 
         <div>
             <label>
-                <input type="radio" name="user_type" value="student" checked>
+                <input type="radio" name="user_type" value="student" checked onclick="toggleGroupSelection()">
                 Студент
             </label>
             <label>
-                <input type="radio" name="user_type" value="staff">
+                <input type="radio" name="user_type" value="staff" onclick="toggleGroupSelection()">
                 Преподаватель
             </label>
+        </div>
+
+        <div id="group-selection" style="display: block;">
+            <label for="group">Группа:</label>
+            <select name="group" id="group">
+                <option value="">Выберите группу</option>
+                {% for group in groups %}
+                    <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
         </div>
 
         <button type="submit">Зарегистрироваться</button>
     </form>
 </div>
+
+<script>
+    function toggleGroupSelection() {
+        const studentRadio = document.querySelector('input[name="user_type"][value="student"]');
+        const groupSelection = document.getElementById('group-selection');
+        groupSelection.style.display = studentRadio.checked ? 'block' : 'none';
+    }
+
+    // Инициализация видимости при загрузке страницы
+    toggleGroupSelection();
+</script>
 {% endblock %}

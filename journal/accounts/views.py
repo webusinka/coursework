@@ -4,12 +4,13 @@ from django.contrib import messages
 from django.contrib.auth.views import LogoutView
 from django.urls import reverse_lazy
 import random
-from .models import AcademicPerformance
+from .models import AcademicPerformance, id_Student_Group, Group
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('registrstion/login')
 
 def register(request):
+    groups = Group.objects.all()
     if request.method == 'POST':
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
@@ -40,9 +41,15 @@ def register(request):
                 direction_comment=direction_comment
             )
 
+            if user_type == 'student':  # Изменено на 'student'
+                group_id = request.POST.get('group')  # Получаем ID группы из POST-запроса
+                if group_id:
+                    group = Group.objects.get(id=group_id)  # Получаем объект группы
+                    id_Student_Group.objects.create(user=user, group=group)  # Сохраняем связь
+
             messages.success(request, 'Вы успешно зарегистрированы! Теперь вы можете войти.')
             return redirect('login')  # Перенаправление на страницу входа
     else:
         form = UserRegistrationForm()
-    return render(request, 'accounts/register.html', {'form': form})
+    return render(request, 'accounts/register.html', {'form': form, 'groups': groups})
 
