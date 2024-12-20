@@ -7,14 +7,14 @@
     <h2>Регистрация</h2>
 
     {% if messages %}
-        <ul>
+        <ul id="messages">
             {% for message in messages %}
                 <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
             {% endfor %}
         </ul>
     {% endif %}
 
-    <form method="post">
+    <form method="post" onsubmit="return validateForm()">
         {% csrf_token %}
         {{ form.as_p }}
 
@@ -29,7 +29,7 @@
             </label>
         </div>
 
-        <div id="group-selection" style="display: block;">
+        <div id="group-selection" style="display: block; margin-top: 20px; margin-bottom: 20px;">  
             <label for="group">Группа:</label>
             <select name="group" id="group">
                 <option value="">Выберите группу</option>
@@ -39,6 +39,7 @@
             </select>
         </div>
 
+        <div style="margin-bottom: 20px;"></div>
         <button type="submit">Зарегистрироваться</button>
     </form>
 </div>
@@ -52,5 +53,18 @@
 
     // Инициализация видимости при загрузке страницы
     toggleGroupSelection();
+
+    // Функция для валидации формы
+    function validateForm() {
+        const groupSelect = document.getElementById('group');
+        const selectedGroup = groupSelect.value;
+
+        if (selectedGroup === "") {
+            alert("Пожалуйста, выберите группу.");  // Сообщение об ошибке
+            return false;  // Останавливаем отправку формы
+        }
+
+        return true;  // Позволяем отправку формы
+    }
 </script>
 {% endblock %}
