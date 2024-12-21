@@ -55,17 +55,6 @@ def get_question_category(request, question_id):
     except Question.DoesNotExist:
         return JsonResponse({'error': 'Question not found'}, status=404)
 
-def save_testing_changes(request):
-    if request.method == 'POST':
-        question = request.POST.get('question')
-
-        new_question = Question.objects.create(text=question)
-        # for answer in answers:
-        #     Answer.objects.create(question=new_question, text=answer.strip())
-
-        return JsonResponse({'status': 'success', 'message': 'Изменения сохранены!'})
-    return JsonResponse({'status': 'error', 'message': 'Ошибка при сохранении изменений.'})
-
 @login_required
 def submit_test(request):
     if request.method == 'POST':
@@ -141,6 +130,67 @@ def update_performance(request):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request method.'}, status=400)
+
+@csrf_exempt
+def save_testing_changes(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        action = data.get('action')
+        new_category = data.get('new_category')
+
+        if action == 'add':
+            question_text = data.get('question')
+            category = data.get('category')
+            if new_category != "":
+                category = new_category
+
+            if question_text and category:
+                # Создаем новый вопрос и добавляем ответы
+                new_question = Question.objects.create(text=question_text, category=category)
+                Answer.objects.create(question_id=new_question.id, text='Больше да', is_correct=True)
+                Answer.objects.create(question_id=new_question.id, text='Больше нет', is_correct=False)
+
+                return JsonResponse({'status': 'success', 'message': 'Вопрос успешно добавлен!'})
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Необходимо заполнить все поля.'}, status=400)
+
+        elif action == 'delete':
+            question_id = data.get('delete_question_id')
+            if question_id:
+                try:
+                    # Находим вопрос по ID и удаляем его вместе с ответами
+                    question = Question.objects.get(id=question_id)
+                    question.delete()  # Это также удалит все связанные ответы из-за on_delete=models.CASCADE
+
+                    return JsonResponse({'status': 'success', 'message': 'Вопрос успешно удален!'})
+                except Question.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Вопрос не найден.'}, status=404)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Необходимо указать ID вопроса для удаления.'}, status=400)
+
+        elif action == 'update':
+            question_id = data.get('question_id')
+            new_question_text = data.get('question')
+            new_category = data.get('category')
+            if new_category == "":
+                # Если новая категория введена, используем её
+                new_category = data.get('new_category')
+            
+            if question_id and new_question_text and new_category:
+                try:
+                    # Находим вопрос по ID и обновляем его текст и категорию
+                    question = Question.objects.get(id=question_id)
+                    question.text = new_question_text
+                    question.category = new_category
+                    question.save()  # Сохраняем изменения
+
+                    return JsonResponse({'status': 'success', 'message': 'Вопрос успешно обновлен!'})
+                except Question.DoesNotExist:
+                    return JsonResponse({'status': 'error', 'message': 'Вопрос не найден.'}, status=404)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Необходимо указать ID вопроса, текст и категорию для обновления.'}, status=400)
+
+    return JsonResponse({'status': 'error', 'message': 'Ошибка при сохранении изменений.'}, status=400)
 
 class CustomLogoutView(LogoutView):
     next_page = reverse_lazy('login')

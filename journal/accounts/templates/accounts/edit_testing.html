@@ -6,16 +6,22 @@
 {% block content %}
 <div class="content" style=" padding: 20px; border-radius: 5px; max-width: 500px; margin: auto;
                             background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+    
+    <div style="text-align: left; margin-bottom: 15px;">
+        <a href="{% url 'home' %}" class="btn-back" style="text-decoration: none; background-color: #007bff; color: white; padding: 10px 10px; border-radius: 5px;">Назад</a>
+    </div>
+
     <h2>Изменить тестирование</h2>
+
     <form id="edit-testing-form" method="POST" action="{% url 'save_testing_changes' %}" style="display: flex; flex-direction: column; gap: 15px;">
         {% csrf_token %}
         
         <label for="action">Выберите действие:</label>
         <select id="action" name="action" required style="font-size: 14px; padding: 5px;">
             <option value="" disabled selected>Выберите действие</option>
-            <option value="update">Изменить существующий вопрос</option>
             <option value="add">Добавить новый вопрос</option>
-            <option value="delete">Удалить существующий вопрос</option> <!-- Новая опция для удаления -->
+            <option value="delete">Удалить существующий вопрос</option>
+            <option value="update">Изменить существующий вопрос</option>
         </select>
 
         <div id="question-selection-container" style="display: none;">
@@ -28,7 +34,7 @@
             </select>
         </div>
 
-        <div id="delete-question-container" style="display: none;"> <!-- Новый контейнер для удаления вопроса -->
+        <div id="delete-question-container" style="display: none;">
             <label for="delete-question">Выберите вопрос для удаления:</label>
             <select id="delete-question" name="delete-question" style="font-size: 14px; padding: 5px;">
                 <option value="" disabled selected>Выберите вопрос</option>
@@ -77,6 +83,7 @@
         const questionContainer = document.getElementById('question-container');
         const categoryContainer = document.getElementById('category-container');
         const newCategoryContainer = document.getElementById('new-category-container');
+        const questionInput = document.getElementById('question');
 
         // Скрываем все контейнеры по умолчанию
         questionSelectionContainer.style.display = 'none';
@@ -94,6 +101,7 @@
             categoryContainer.style.display = 'block'; // Показать выбор категории
         } else if (action === 'delete') {
             deleteQuestionContainer.style.display = 'block'; // Показать выбор вопроса для удаления
+            questionInput.removeAttribute('required');
         }
     });
 
@@ -120,8 +128,7 @@
         const selectedQuestionText = this.options[this.selectedIndex].text;
         const questionInput = document.getElementById('question');
 
-        // Заполняем поле вопроса выбранным текстом
-        questionInput.value = selectedQuestionText;
+        questionInput.value = " ";
     });
 
     document.getElementById('delete-question').addEventListener('change', function() {
@@ -146,6 +153,49 @@
         } else {
             categoryDisplay.textContent = ''; // Очистить, если ничего не выбрано
         }
+    });
+    
+    document.getElementById('edit-testing-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Предотвращаем стандартное поведение формы
+
+        const action = document.getElementById('action').value;
+        const questionText = document.getElementById('question').value;
+        const category = document.getElementById('category').value;
+        const newCategory = document.getElementById('new-category').value;
+        const existingQuestionId = document.getElementById('existing-question') ? document.getElementById('existing-question').value : null;
+        const deleteQuestionId = document.getElementById('delete-question') ? document.getElementById('delete-question').value : null;
+        
+        const data = {
+            action: action,
+            question: questionText,
+            category: category,
+            new_category: newCategory,
+            question_id: existingQuestionId,
+            delete_question_id: deleteQuestionId
+        };
+
+        // Отправляем данные на сервер в формате JSON
+        fetch('{% url "save_testing_changes" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Данные успешно обновлены!'); // Уведомляем пользователя об успешном добавлении
+                window.location.reload(); // Перезагружаем страницу
+            } else {
+                alert('Ошибка: ' + data.message); // Уведомляем пользователя об ошибке
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            alert('Произошла ошибка при сохранении изменений.');
+        });
     });
 </script>
 {% endblock %}
