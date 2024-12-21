@@ -18,8 +18,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from .views import home, submit_test, results, update_performance, edit_testing, save_testing_changes, get_question_category
-
+from .views import home, submit_test, results, update_performance, edit_testing
+from .views import save_testing_changes, get_question_category, add_group, delete_group
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
@@ -36,4 +36,7 @@ urlpatterns = [
     path('edit_testing/', edit_testing, name='edit_testing'),
     path('save_testing_changes/', save_testing_changes, name='save_testing_changes'),
     path('get-question-category/<int:question_id>/', get_question_category, name='get_question_category'),
+
+    path('add_group/', add_group, name='add_group'),
+    path('delete_group/<int:group_id>/', delete_group, name='delete_group'),
 ]

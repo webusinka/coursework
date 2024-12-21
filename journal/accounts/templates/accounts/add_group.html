@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Добавление новой группы{% endblock %}
+
+{% block content %}
+<div class="content" style="padding: 20px; border-radius: 5px; max-width: 500px; margin: auto;
+                            background-color: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);">
+    
+    <div style="text-align: left; margin-bottom: 15px;">
+        <a href="{% url 'home' %}" class="btn-back" style="text-decoration: none; background-color: #007bff; color: white; padding: 10px 10px; border-radius: 5px;">Назад</a>
+    </div>
+
+    <h2 style="text-align: center;">Добавление новой группы для регистрирующихся</h2>
+
+    {% if error_message %}
+        <div id="error-message" style="color: red; text-align: center; margin-bottom: 15px;">
+            {{ error_message }}
+        </div>
+    {% endif %}
+
+    <form id="add-group-form" method="POST" action="{% url 'add_group' %}" style="display: flex; flex-direction: column; gap: 15px;">
+        {% csrf_token %}
+        <label for="group_name">Название группы:</label>
+        <input type="text" id="group_name" name="group_name" required placeholder="Введите название группы" style="font-size: 14px; padding: 5px;">
+        
+        <button type="submit" style="width: 150px;">Добавить группу</button>
+    </form>
+
+    <h2 style="text-align: center; margin-top: 30px;">Существующие группы:</h2>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; margin-top: 10px;">
+        {% for group in groups %}
+            <div class="group" style="border: 1px solid #007bff; border-radius: 5px; padding: 10px; background-color: #f0f8ff; text-align: center; width: 150px; position: relative;">
+                <p style="margin: 0;">{{ group.name }}</p>
+                <button class="delete-group" data-group-id="{{ group.id }}" style="display: none; position: absolute; top: 5px; right: 5px; background: red; color: white; border: none; border-radius: 5px; cursor: pointer;">Удалить</button>
+            </div>        
+        {% empty %}
+            <p>Нет существующих групп.</p>
+        {% endfor %}
+    </div>
+
+    {% if users_in_deleted_group %}
+        <h2 style="text-align: center; margin-top: 30px;">Пользователи в удаленной группе:</h2>
+        <div style="margin-top: 10px; text-align: center;">
+            <p>Пожалуйста, выберите новую группу для следующих пользователей:</p>
+            <form method="POST" action="{% url 'reassign_users' %}">
+                {% csrf_token %}
+                <select name="new_group" required style="font-size: 14px; padding: 5px;">
+                    <option value="" disabled selected>Выберите новую группу</option>
+                    {% for group in groups %}
+                        <option value="{{ group.id }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+                <div style="margin-top: 10px;">
+                    {% for user in users_in_deleted_group %}
+                        <div>
+                            <input type="checkbox" name="users" value="{{ user.id }}" id="user_{{ user.id }}">
+                            <label for="user_{{ user.id }}">{{ user.username }}</label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <button type="submit" style="width: 150px; margin-top: 10px;">Перевести в новую группу</button>
+            </form>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Очищаем сообщение об ошибке при фокусе на поле ввода
+    document.getElementById('group_name').addEventListener('focus', function() {
+        var errorMessage = document.getElementById('error-message');
+        if (errorMessage) {
+            errorMessage.style.display = 'none'; // Скрываем сообщение об ошибке
+        }
+    });
+
+    // Обработчик для показа кнопки "Удалить" при наведении
+    document.querySelectorAll('.group').forEach(group => {
+        const deleteButton = group.querySelector('.delete-group');
+
+        group.addEventListener('mouseenter', function() {
+            deleteButton.style.display = 'block'; // Показываем кнопку при наведении
+        });
+
+        group.addEventListener('mouseleave', function() {
+            deleteButton.style.display = 'none'; // Скрываем кнопку при уходе курсора
+        });
+
+        // Обработчик для удаления группы
+        deleteButton.addEventListener('click', function() {
+            const groupId = this.getAttribute('data-group-id');
+            if (confirm('Вы уверены, что хотите удалить эту группу?')) {
+                fetch(`/delete_group/${groupId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Удаляем элемент группы из DOM
+                        this.closest('.group').remove();
+                    } else {
+                        alert('Ошибка при удалении группы.');
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

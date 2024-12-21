@@ -1,6 +1,6 @@
 from django.contrib.auth.views import LogoutView
 from django.urls import reverse_lazy
-from accounts.models import CustomUser, Question, Answer, TestResult, AcademicPerformance, Group
+from accounts.models import CustomUser, Question, Answer, TestResult, AcademicPerformance, Group, id_Student_Group
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
@@ -9,6 +9,7 @@ from collections import defaultdict
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.http import JsonResponse
+from django.views.decorators.http import require_http_methods, require_POST
 
 @login_required
 def home(request):
@@ -47,6 +48,48 @@ def edit_testing(request):
     if request.method == 'GET':
         return render(request, 'accounts/edit_testing.html', context={'questions': questions, 'unique_categories':unique_categories})
 
+def add_group(request):
+    groups = Group.objects.all()
+    error_message = None  # Переменная для хранения сообщения об ошибке
+
+    if request.method == 'POST':
+        group_name = request.POST.get('group_name')
+        if group_name:
+            # Проверяем, существует ли группа с таким названием
+            if Group.objects.filter(name=group_name).exists():
+                error_message = "Такая группа уже существует."  # Устанавливаем сообщение об ошибке
+            else:
+                # Создаем новую группу
+                Group.objects.create(name=group_name)
+                return redirect('add_group')  # Перенаправляем на ту же страницу после добавления
+
+    return render(request, 'accounts/add_group.html', context={'groups': groups, 'error_message': error_message})
+
+@require_http_methods(["DELETE"])
+def delete_group(request, group_id):
+    try:
+        id_Student_Group.objects.filter(group_id=group_id).delete()
+
+        group = Group.objects.get(id=group_id)
+        group.delete()
+        return JsonResponse({'message': 'Группа успешно удалена.'}, status=204)
+    except Group.DoesNotExist:
+        return JsonResponse({'error': 'Группа не найдена.'}, status=404)
+    
+@require_POST
+def reassign_users(request):
+    new_group_id = request.POST.get('new_group')
+    user_ids = request.POST.getlist('users')
+
+    if not new_group_id or not user_ids:
+        return JsonResponse({'error': 'Не указана новая группа или пользователи.'}, status=400)
+
+    # Переводим пользователей в новую группу
+    for user_id in user_ids:
+        id_Student_Group.objects.update_or_create(user_id=user_id, group_id=new_group_id)
+
+    return JsonResponse({'message': 'Пользователи успешно переведены в новую группу.'}, status=200)
+    
 def get_question_category(request, question_id):
     try:
         question = Question.objects.get(id=question_id)  # Получаем вопрос по ID

@@ -117,6 +117,7 @@
             
             <div style="text-align: center; margin-top: 20px;">
                 <button id="edit-testing-button" style="width: 150px;">Изменить тестирование</button>
+                <button id="add-group-button" style="width: 150px;">Изменить списки групп</button>
             </div>
         {% else %}
             {% if questions %}
@@ -159,6 +160,10 @@
 
     document.getElementById('edit-testing-button').addEventListener('click', function() {
         window.location.replace('{% url "edit_testing" %}');
+    });
+
+    document.getElementById('add-group-button').addEventListener('click', function() {
+        window.location.replace('{% url "add_group" %}');
     });
 
     document.getElementById('update-form').addEventListener('submit', function(event) {
