@@ -8,8 +8,8 @@ from django.contrib import messages
 from collections import defaultdict
 from django.views.decorators.csrf import csrf_exempt
 import json
-from django.http import JsonResponse
-from django.views.decorators.http import require_http_methods, require_POST
+from django.http import JsonResponse, HttpResponse
+from django.views.decorators.http import require_http_methods
 
 @login_required
 def home(request):
@@ -23,8 +23,8 @@ def home(request):
             # Фильтруем пользователей по выбранной группе
             users = CustomUser .objects.filter(id_student_group__group_id=group_id)
         else:
-            # Если группа не выбрана, получаем всех пользователей, кроме суперпользователей
-            users = CustomUser .objects.exclude(is_staff=True)
+            # Если группа не выбрана, получаем всех пользователей без группы, кроме суперпользователей
+            users = CustomUser .objects.exclude(id__in=id_Student_Group.objects.values('user_id')).exclude(is_staff=True)
 
         # Получаем успеваемость для этих пользователей
         performances = AcademicPerformance.objects.filter(user__in=users)
@@ -48,6 +48,22 @@ def edit_testing(request):
     if request.method == 'GET':
         return render(request, 'accounts/edit_testing.html', context={'questions': questions, 'unique_categories':unique_categories})
 
+@login_required
+def assign_group(request):
+    if request.method == 'POST':
+        student_id = request.POST.get('student_id')
+        new_group_id = request.POST.get('new_group')
+
+        if student_id and new_group_id:
+            # Создаем или обновляем запись в id_Student_Group
+            id_Student_Group.objects.update_or_create(user_id=student_id, group_id=new_group_id)
+
+            return redirect('home')  # Перенаправляем на главную страницу после назначения группы
+        else:
+            return HttpResponse("Ошибка: Не указаны студент или группа.", status=400)
+
+    return HttpResponse("Метод не разрешен.", status=405)
+
 def add_group(request):
     groups = Group.objects.all()
     error_message = None  # Переменная для хранения сообщения об ошибке
@@ -68,27 +84,24 @@ def add_group(request):
 @require_http_methods(["DELETE"])
 def delete_group(request, group_id):
     try:
-        id_Student_Group.objects.filter(group_id=group_id).delete()
-
+        # Получаем группу и связанных с ней пользователей
         group = Group.objects.get(id=group_id)
+        users_in_group = id_Student_Group.objects.filter(group=group).select_related('user')
+
+        # Удаляем все записи из id_Student_Group, связанные с группой
+        users_in_group.delete()
+        
+        # Теперь удаляем саму группу
         group.delete()
-        return JsonResponse({'message': 'Группа успешно удалена.'}, status=204)
+        
+        # Возвращаем список пользователей, которые были в удаленной группе
+        return JsonResponse({
+            'message': 'Группа успешно удалена.',
+            'users': [{'id': user.user.id, 'username': user.user.username} for user in users_in_group]
+        }, status=204)
     except Group.DoesNotExist:
         return JsonResponse({'error': 'Группа не найдена.'}, status=404)
     
-@require_POST
-def reassign_users(request):
-    new_group_id = request.POST.get('new_group')
-    user_ids = request.POST.getlist('users')
-
-    if not new_group_id or not user_ids:
-        return JsonResponse({'error': 'Не указана новая группа или пользователи.'}, status=400)
-
-    # Переводим пользователей в новую группу
-    for user_id in user_ids:
-        id_Student_Group.objects.update_or_create(user_id=user_id, group_id=new_group_id)
-
-    return JsonResponse({'message': 'Пользователи успешно переведены в новую группу.'}, status=200)
     
 def get_question_category(request, question_id):
     try:

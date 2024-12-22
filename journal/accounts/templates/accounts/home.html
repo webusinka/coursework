@@ -61,15 +61,25 @@
             <table border="1">
                 <tr>
                     <th>Имя пользователя</th>
+                    <th>Группа</th> <!-- Добавлено поле для группы -->
                     <th>Посещаемость(%)</th>
                     <th>Основы ИБ</th>
-                    <th>Программирование</th>
+                    <th>Прога</th>
                     <th>Безопасность ОС</th>
                     <th>Комментарий от преподавателя</th>
                 </tr>
                 {% for user in users %}
                     <tr>
                         <td>{{ user.username }}</td>
+                        <td>
+                            {% with user.id_student_group_set.first as student_group %}
+                                {% if student_group %}
+                                    {{ student_group.group.name }}
+                                {% else %}
+                                    Нет группы
+                                {% endif %}
+                            {% endwith %}
+                        </td>
                         {% for performance in performances %}
                             {% if performance.user == user %}
                                 <td>{{ performance.attendance|floatformat:2 }}</td>
@@ -83,12 +93,39 @@
                         {% endfor %}
                     </tr>
                 {% empty %}
-                <tr>
-                    <td colspan="2">Нет зарегистрированных пользователей.</td>
-                </tr>
+                    <tr>
+                        <td colspan="2">Нет зарегистрированных пользователей.</td>
+                    </tr>
                 {% endfor %}
             </table>
-            <h2>Изменить данные студента:</h2>
+
+            <h2>Изменить группу студента:</h2>
+                <form id="assign-group-form" method="POST" action="{% url 'assign_group' %}">
+                    {% csrf_token %}
+                    <label for="student-select">Выберите студента:</label>
+                    <select id="student-select" name="student_id" required style="font-size: 14px; padding: 5px;">
+                        <option value="" disabled selected>Выберите студента</option>
+                        {% for user in users %}
+                            {% with user.id_student_group_set.first as student_group %}
+                                {% if not student_group %}
+                                    <option value="{{ user.id }}">{{ user.username }}</option>
+                                {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                    </select>
+
+                    <label for="new-group-select">Выберите группу:</label>
+                    <select id="new-group-select" name="new_group" required style="font-size: 14px; padding: 5px;">
+                        <option value="" disabled selected>Выберите группу</option>
+                        {% for group in groups %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button type="submit" style="width: 150px;">Назначить группу</button>
+                </form>
+
+            <h2>Изменить данные успеваемости студента:</h2>
             <form id="update-form" method="POST" action="{% url 'update_performance' %}">
                 {% csrf_token %}
                 <label for="username">Имя пользователя:</label>
@@ -156,6 +193,11 @@
 
         // Перезагружаем страницу с параметром group_id
         window.location.href = `?group_id=${groupId}`;
+    }
+
+    function assignGroup(userId) {
+        // Устанавливаем ID студента в скрытое поле формы
+        document.getElementById('student-id').value = userId;
     }
 
     document.getElementById('edit-testing-button').addEventListener('click', function() {

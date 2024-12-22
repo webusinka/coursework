@@ -37,31 +37,6 @@
             <p>Нет существующих групп.</p>
         {% endfor %}
     </div>
-
-    {% if users_in_deleted_group %}
-        <h2 style="text-align: center; margin-top: 30px;">Пользователи в удаленной группе:</h2>
-        <div style="margin-top: 10px; text-align: center;">
-            <p>Пожалуйста, выберите новую группу для следующих пользователей:</p>
-            <form method="POST" action="{% url 'reassign_users' %}">
-                {% csrf_token %}
-                <select name="new_group" required style="font-size: 14px; padding: 5px;">
-                    <option value="" disabled selected>Выберите новую группу</option>
-                    {% for group in groups %}
-                        <option value="{{ group.id }}">{{ group.name }}</option>
-                    {% endfor %}
-                </select>
-                <div style="margin-top: 10px;">
-                    {% for user in users_in_deleted_group %}
-                        <div>
-                            <input type="checkbox" name="users" value="{{ user.id }}" id="user_{{ user.id }}">
-                            <label for="user_{{ user.id }}">{{ user.username }}</label>
-                        </div>
-                    {% endfor %}
-                </div>
-                <button type="submit" style="width: 150px; margin-top: 10px;">Перевести в новую группу</button>
-            </form>
-        </div>
-    {% endif %}
 </div>
 
 <script>
