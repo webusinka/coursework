@@ -114,7 +114,9 @@
                 <select id="new-group-select" name="new_group" required style="font-size: 14px; padding: 5px;">
                     <option value="" disabled selected>Выберите группу</option>
                     {% for group in groups %}
-                        <option value="{{ group.id }}">{{ group.name }}</option>
+                        {% if group.id|stringformat:"s" != request.GET.group_id %}
+                            <option value="{{ group.id }}">{{ group.name }}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
             
