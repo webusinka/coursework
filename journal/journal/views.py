@@ -55,8 +55,12 @@ def assign_group(request):
         new_group_id = request.POST.get('new_group')
 
         if student_id and new_group_id:
-            # Создаем или обновляем запись в id_Student_Group
-            id_Student_Group.objects.update_or_create(user_id=student_id, group_id=new_group_id)
+            # Получаем или создаем запись в id_Student_Group
+            student_group, created = id_Student_Group.objects.get_or_create(user_id=student_id)
+
+            # Обновляем группу
+            student_group.group_id = new_group_id
+            student_group.save()
 
             return redirect('home')  # Перенаправляем на главную страницу после назначения группы
         else:
