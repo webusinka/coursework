@@ -55,14 +55,20 @@ def assign_group(request):
         new_group_id = request.POST.get('new_group')
 
         if student_id and new_group_id:
-            # Получаем или создаем запись в id_Student_Group
-            student_group, created = id_Student_Group.objects.get_or_create(user_id=student_id)
+            try:
+                # Пытаемся получить существующую запись
+                student_group = id_Student_Group.objects.get(user_id=student_id)
+            except id_Student_Group.DoesNotExist:
+                # Если записи нет, создаем новую
+                student_group = id_Student_Group(user_id=student_id, group_id=new_group_id)
+                student_group.save()
+                return redirect('home')
 
-            # Обновляем группу
+            # Если запись существует, обновляем группу
             student_group.group_id = new_group_id
             student_group.save()
 
-            return redirect('home')  # Перенаправляем на главную страницу после назначения группы
+            return redirect('home')
         else:
             return HttpResponse("Ошибка: Не указаны студент или группа.", status=400)
 
